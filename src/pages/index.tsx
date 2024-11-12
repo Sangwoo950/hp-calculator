@@ -37,6 +37,12 @@ export default function Home() {
     setSummaryData(summary);
   };
 
+  const handleCopy = (): void => {
+    navigator.clipboard.writeText(nonDuplicateData).then(() => {
+      alert('발송 대상번호가 복사되었습니다.');
+    });
+  };
+
   return (
     <article className='container mx-auto p-8 bg-gray-100 rounded-lg shadow-md'>
       <h1 className='text-center text-3xl font-bold text-gray-800 mb-6'>
@@ -95,6 +101,12 @@ export default function Home() {
           readOnly
           rows={10}
         />
+        <button
+          className='mt-4 w-full bg-green-600 text-white py-3 rounded-md font-bold text-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50'
+          onClick={handleCopy}
+        >
+          발송대상 번호 복사하기
+        </button>
       </div>
     </article>
   );
