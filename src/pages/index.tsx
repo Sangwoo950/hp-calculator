@@ -9,27 +9,24 @@ export default function Home() {
 
   const formatData = (data: string): string[] => {
     return data
-      .split(/\s+|,/) // Split by spaces or commas
-      .map((item) => item.replace(/[^0-9]/g, '').trim()) // Remove non-numeric characters and trim
-      .filter((item) => item) // Remove empty strings
-      .map((item) => item.slice(-8)); // Use only the last 8 digits
+      .split(/\s+|,/)
+      .map((item) => item.replace(/[^0-9]/g, '').trim())
+      .filter((item) => item)
+      .map((item) => item.slice(-8));
   };
 
   const handleCalculate = (): void => {
     const senderArray = formatData(senderData);
     const responseArray = formatData(responseData);
 
-    // Find duplicate values between senderArray and responseArray
     const duplicates = [
       ...new Set(senderArray.filter((item) => responseArray.includes(item))),
     ];
 
-    // Remove duplicates from senderArray to get non-duplicate values and add '010' prefix
     const nonDuplicates = [
       ...new Set(senderArray.filter((item) => !responseArray.includes(item))),
     ].map((item) => `010${item}`);
 
-    // Create summary data
     const summary = `입력 ${senderArray.length}개, 응답 ${responseArray.length}개, 중복 ${duplicates.length}개, 최종 ${nonDuplicates.length}개`;
 
     setDuplicateData(duplicates.join(', '));
