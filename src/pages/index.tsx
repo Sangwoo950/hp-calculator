@@ -7,7 +7,7 @@ export default function Home() {
   const [nonDuplicateData, setNonDuplicateData] = useState('');
   const [summaryData, setSummaryData] = useState('');
 
-  const formatData = (data) => {
+  const formatData = (data: string): string[] => {
     return data
       .split(/\s+|,/) // Split by spaces or commas
       .map((item) => item.replace(/[^0-9]/g, '').trim()) // Remove non-numeric characters and trim
@@ -15,7 +15,7 @@ export default function Home() {
       .map((item) => item.slice(-8)); // Use only the last 8 digits
   };
 
-  const handleCalculate = () => {
+  const handleCalculate = (): void => {
     const senderArray = formatData(senderData);
     const responseArray = formatData(responseData);
 
@@ -50,7 +50,7 @@ export default function Home() {
           className='w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
           value={senderData}
           onChange={(e) => setSenderData(e.target.value)}
-          rows='4'
+          rows={4}
         />
       </div>
       <div className='mb-6'>
@@ -61,7 +61,7 @@ export default function Home() {
           className='w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
           value={responseData}
           onChange={(e) => setResponseData(e.target.value)}
-          rows='4'
+          rows={4}
         />
       </div>
       <button
@@ -82,7 +82,7 @@ export default function Home() {
           className='w-full p-4 border border-gray-300 rounded-md bg-gray-200 text-gray-700 focus:outline-none'
           value={duplicateData}
           readOnly
-          rows='4'
+          rows={4}
         />
       </div>
       <div className='mt-6'>
@@ -93,7 +93,7 @@ export default function Home() {
           className='w-full p-4 border border-gray-300 rounded-md bg-gray-200 text-gray-700 focus:outline-none'
           value={nonDuplicateData}
           readOnly
-          rows='10'
+          rows={10}
         />
       </div>
     </article>
