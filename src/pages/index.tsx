@@ -30,7 +30,7 @@ export default function Home() {
     ].map((item) => `010${item}`);
 
     // Create summary data
-    const summary = `입력 ${senderArray.length}개, 응답 데이터 ${responseArray.length}개, 중복 ${duplicates.length}개, 최종 ${nonDuplicates.length}개`;
+    const summary = `입력 ${senderArray.length}개, 응답 ${responseArray.length}개, 중복 ${duplicates.length}개, 최종 ${nonDuplicates.length}개`;
 
     setDuplicateData(duplicates.join(', '));
     setNonDuplicateData(nonDuplicates.join('\n'));
