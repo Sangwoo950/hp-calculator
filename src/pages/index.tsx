@@ -276,8 +276,8 @@ export default function Home() {
           onClick={handleCopy}
         >
           {displayOption === 'duplicates'
-            ? '중복 데이터 복사하기'
-            : '발송 대상 번호 복사하기'}
+            ? '중복 데이터 복사하기(copy)'
+            : '발송 대상 번호 복사하기(copy)'}
         </button>
       </div>
     </article>
