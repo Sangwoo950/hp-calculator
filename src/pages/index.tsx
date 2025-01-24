@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 
 export default function Home() {
   const [senderData, setSenderData] = useState('');
@@ -132,8 +133,15 @@ export default function Home() {
 
   return (
     <article className='container mx-auto p-8 bg-gray-100 rounded-lg shadow-md'>
-      <h1 className='text-center text-3xl font-bold text-gray-800 mb-6'>
-        Calculator Assistant
+      <h1 className='text-center text-3xl font-bold text-gray-800 mb-6 flex justify-center'>
+        번호 세탁기
+        <Image
+          className='flex'
+          src='/무.png'
+          alt='Favicon Icon'
+          width={32}
+          height={32}
+        />
       </h1>
 
       {/* 데이터 유형 선택 섹션 */}
