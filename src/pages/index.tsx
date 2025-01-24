@@ -14,8 +14,8 @@ export default function Home() {
   // 데이터 유형에 따라 데이터를 포맷팅하는 함수
   const formatData = (data: string): string[] => {
     return data
-      .split(/\s+|,/)
-      .map((item) => item.replace(/[^0-9]/g, '').trim())
+      .split(/[\n,]+/) // 줄바꿈(\n) 또는 쉼표(,)로 분할
+      .map((item) => item.replace(/[^0-9]/g, '').trim()) // 숫자 이외의 문자 제거
       .filter((item) => item)
       .map((item) => {
         if (dataType === 'phone') {
@@ -27,22 +27,70 @@ export default function Home() {
   };
 
   // 데이터 유효성 검사 함수 (옵션)
-  const validateData = (data: string): boolean => {
+  const validateData = (
+    data: string
+  ): { valid: boolean; invalidItems: string[] } => {
     const formattedData = formatData(data);
+    let isValid = true;
+    let invalidItems: string[] = [];
+
     if (dataType === 'phone') {
       // 핸드폰 번호는 슬라이싱 후 8자리이어야 함
-      return formattedData.every((item) => item.length === 8);
+      formattedData.forEach((item) => {
+        if (item.length !== 8) {
+          isValid = false;
+          invalidItems.push(item);
+        }
+      });
     } else {
       // 결제 번호는 1~8자리 숫자이어야 함
-      return formattedData.every(
-        (item) => item.length <= 8 && item.length >= 1
-      );
+      formattedData.forEach((item) => {
+        if (item.length < 1 || item.length > 8) {
+          isValid = false;
+          invalidItems.push(item);
+        }
+      });
     }
+
+    return { valid: isValid, invalidItems };
+  };
+
+  // 데이터 정렬 함수: 각 항목 내의 하이픈과 공백만 제거
+  const handleSanitize = (): void => {
+    const sanitize = (data: string): string => {
+      return data
+        .split(/[\n,]+/) // 줄바꿈(\n) 또는 쉼표(,)로 분할
+        .map((item) => item.replace(/[-\s]/g, '').trim()) // 각 항목 내 하이픈과 공백 제거
+        .join(', '); // 다시 쉼표로 연결
+    };
+
+    setSenderData(sanitize(senderData));
+    setResponseData(sanitize(responseData));
+
+    alert('데이터가 정렬되었습니다. 이제 Calculate 버튼을 클릭하세요.');
   };
 
   const handleCalculate = (): void => {
-    if (!validateData(senderData) || !validateData(responseData)) {
-      alert('입력된 데이터 형식이 올바르지 않습니다.');
+    const senderValidation = validateData(senderData);
+    const responseValidation = validateData(responseData);
+
+    if (!senderValidation.valid || !responseValidation.valid) {
+      const errorMessages = [];
+      if (!senderValidation.valid) {
+        errorMessages.push(
+          `비교군 A에 잘못된 데이터가 있습니다: ${senderValidation.invalidItems.join(
+            ', '
+          )}`
+        );
+      }
+      if (!responseValidation.valid) {
+        errorMessages.push(
+          `비교군 B에 잘못된 데이터가 있습니다: ${responseValidation.invalidItems.join(
+            ', '
+          )}`
+        );
+      }
+      alert(errorMessages.join('\n'));
       return;
     }
 
@@ -76,6 +124,9 @@ export default function Home() {
       )
       .then(() => {
         alert('복사되었습니다.');
+      })
+      .catch(() => {
+        alert('복사에 실패했습니다. 다시 시도해주세요.');
       });
   };
 
@@ -159,8 +210,8 @@ export default function Home() {
           rows={4}
           placeholder={
             dataType === 'phone'
-              ? '핸드폰 번호를 입력하세요 (예: 01012345678)'
-              : '결제 번호를 입력하세요 (1~8자리 숫자)'
+              ? '핸드폰 번호를 입력하세요 (예: 010-1234-5678 또는 01012345678)'
+              : '결제 번호를 입력하세요 (1~8자리 숫자, 쉼표 또는 줄바꿈으로 구분)'
           }
         />
       </div>
@@ -177,19 +228,27 @@ export default function Home() {
           rows={4}
           placeholder={
             dataType === 'phone'
-              ? '핸드폰 번호를 입력하세요 (예: 01087654321)'
-              : '결제 번호를 입력하세요 (1~8자리 숫자)'
+              ? '핸드폰 번호를 입력하세요 (예: 010-8765-4321 또는 01087654321)'
+              : '결제 번호를 입력하세요 (1~8자리 숫자, 쉼표 또는 줄바꿈으로 구분)'
           }
         />
       </div>
 
-      {/* Calculate 버튼 */}
-      <button
-        className='w-full bg-blue-600 text-white py-3 rounded-md font-bold text-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50'
-        onClick={handleCalculate}
-      >
-        Calculate
-      </button>
+      {/* 정렬 및 Calculate 버튼 섹션 */}
+      <div className='flex flex-col space-y-4 mb-6'>
+        <button
+          className='w-full bg-yellow-500 text-white py-3 rounded-md font-bold text-lg hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50'
+          onClick={handleSanitize}
+        >
+          정렬 (Sanitize)
+        </button>
+        <button
+          className='w-full bg-blue-600 text-white py-3 rounded-md font-bold text-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50'
+          onClick={handleCalculate}
+        >
+          계산 (Calculate)
+        </button>
+      </div>
 
       {/* 요약 섹션 */}
       <div className='mt-6'>
