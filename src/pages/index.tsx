@@ -32,7 +32,7 @@ export default function Home() {
   ): { valid: boolean; invalidItems: string[] } => {
     const formattedData = formatData(data);
     let isValid = true;
-    let invalidItems: string[] = [];
+    const invalidItems: string[] = [];
 
     if (dataType === 'phone') {
       // 핸드폰 번호는 슬라이싱 후 8자리이어야 함
