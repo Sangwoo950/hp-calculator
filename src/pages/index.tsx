@@ -11,9 +11,9 @@ export default function Home() {
 
   // [서비스 선택 및 결과 표시 관련 상태]
   const [service, setService] = useState<'filter' | 'extractor'>('filter');
-  const [displayOption, setDisplayOption] = useState<
-    'duplicates' | 'nonDuplicates'
-  >('nonDuplicates');
+  const [displayOption] = useState<'duplicates' | 'nonDuplicates'>(
+    'nonDuplicates'
+  );
 
   // [랜덤번호 추출기 관련 상태]
   const [extractionData, setExtractionData] = useState('');
