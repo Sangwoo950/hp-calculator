@@ -2,79 +2,59 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 
 export default function Home() {
-  // 기존 필터(세탁) 관련 상태
+  // [번호 세탁기(필터) 관련 상태]
   const [senderData, setSenderData] = useState('');
   const [responseData, setResponseData] = useState('');
   const [duplicateData, setDuplicateData] = useState('');
   const [nonDuplicateData, setNonDuplicateData] = useState('');
   const [summaryData, setSummaryData] = useState('');
-  // 새로운 서비스 선택 상태: 'filter' (번호 세탁기) 또는 'extractor' (랜덤번호 추출기)
-  const [service, setService] = useState<'filter' | 'extractor'>('filter');
 
-  // 표시 옵션 상태 (필터 UI에서 사용)
+  // [서비스 선택 및 결과 표시 관련 상태]
+  const [service, setService] = useState<'filter' | 'extractor'>('filter');
   const [displayOption, setDisplayOption] = useState<
     'duplicates' | 'nonDuplicates'
   >('nonDuplicates');
 
-  // 랜덤번호 추출기 관련 상태
-  const [extractionData, setExtractionData] = useState(''); // 랜덤 추출용 번호 입력 데이터 (쉼표/줄바꿈 구분)
-  const [extractionCount, setExtractionCount] = useState<number>(0); // 추출할 번호 개수
-  const [extractedNumbers, setExtractedNumbers] = useState<string>(''); // 추출된 번호 결과
+  // [랜덤번호 추출기 관련 상태]
+  const [extractionData, setExtractionData] = useState('');
+  const [extractionCount, setExtractionCount] = useState<number>(0);
+  const [extractedNumbers, setExtractedNumbers] = useState('');
 
-  // 번호 개수 계산 함수
-  const getNumberCount = (data: string): number => {
-    return data
-      .split(/[\n,]+/) // 줄바꿈 또는 쉼표로 분할
-      .map((item) => item.replace(/[^0-9]/g, '').trim())
-      .filter((item) => item.length > 0).length;
-  };
-
-  // ----- [번호 세탁(필터) 관련 함수] -----
-  const formatData = (data: string): string[] => {
-    return data
+  // --- 공통 유틸리티 함수 ---
+  const cleanNumbers = (data: string): string[] =>
+    data
       .split(/[\n,]+/)
       .map((item) => item.replace(/[^0-9]/g, '').trim())
-      .filter((item) => item)
-      .map((item) => {
-        const trimmed = item.slice(-8);
-        return trimmed;
-      });
-  };
+      .filter((item) => item.length > 0);
 
+  const getNumberCount = (data: string): number => cleanNumbers(data).length;
+
+  // 번호 세탁기용: 입력된 숫자 문자열에서 마지막 8자리를 추출
+  const formatData = (data: string): string[] =>
+    cleanNumbers(data).map((item) => item.slice(-8));
+
+  // 번호 세탁기용: 데이터 정리 (하이픈, 공백 제거 후 쉼표로 연결)
+  const sanitizeData = (data: string): string => cleanNumbers(data).join(', ');
+
+  // 번호 세탁기용: 유효성 검사 (각 항목이 8자리인지 확인)
   const validateData = (
     data: string
   ): { valid: boolean; invalidItems: string[] } => {
     const formattedData = formatData(data);
-    let isValid = true;
-    const invalidItems: string[] = [];
-
-    formattedData.forEach((item) => {
-      if (item.length !== 8) {
-        isValid = false;
-        invalidItems.push(item);
-      }
-    });
-
-    return { valid: isValid, invalidItems };
+    const invalidItems = formattedData.filter((item) => item.length !== 8);
+    return { valid: invalidItems.length === 0, invalidItems };
   };
 
+  // --- 번호 세탁기(필터) 관련 함수 ---
   const handleSanitize = (): void => {
-    const sanitize = (data: string): string => {
-      return data
-        .split(/[\n,]+/)
-        .map((item) => item.replace(/[-\s]/g, '').trim())
-        .join(', ');
-    };
-
-    setSenderData(sanitize(senderData));
-    setResponseData(sanitize(responseData));
+    setSenderData(sanitizeData(senderData));
+    setResponseData(sanitizeData(responseData));
     alert('데이터가 정렬되었습니다. 이제 계산 버튼을 클릭하세요.');
   };
 
   const handleCalculate = (): void => {
     const senderValidation = validateData(senderData);
     const responseValidation = validateData(responseData);
-
     if (!senderValidation.valid || !responseValidation.valid) {
       const errorMessages = [];
       if (!senderValidation.valid) {
@@ -97,37 +77,31 @@ export default function Home() {
 
     const senderArray = formatData(senderData);
     const responseArray = formatData(responseData);
-
-    const duplicates = [
-      ...new Set(senderArray.filter((item) => responseArray.includes(item))),
-    ];
-    const nonDuplicates = [
-      ...new Set(senderArray.filter((item) => !responseArray.includes(item))),
-    ];
-
+    const duplicates = Array.from(
+      new Set(senderArray.filter((item) => responseArray.includes(item)))
+    );
+    const nonDuplicates = Array.from(
+      new Set(senderArray.filter((item) => !responseArray.includes(item)))
+    );
     const formattedNonDuplicates = nonDuplicates.map((item) => `010${item}`);
-
-    const summary = `입력 ${senderArray.length}개, 응답 ${responseArray.length}개, 중복 ${duplicates.length}개, 최종 ${formattedNonDuplicates.length}개`;
 
     setDuplicateData(duplicates.join(', '));
     setNonDuplicateData(formattedNonDuplicates.join('\n'));
-    setSummaryData(summary);
+    setSummaryData(
+      `입력 ${senderArray.length}개, 응답 ${responseArray.length}개, 중복 ${duplicates.length}개, 최종 ${formattedNonDuplicates.length}개`
+    );
   };
 
   const handleCopy = (): void => {
+    const textToCopy =
+      displayOption === 'duplicates' ? duplicateData : nonDuplicateData;
     navigator.clipboard
-      .writeText(
-        displayOption === 'duplicates' ? duplicateData : nonDuplicateData
-      )
-      .then(() => {
-        alert('복사되었습니다.');
-      })
-      .catch(() => {
-        alert('복사에 실패했습니다. 다시 시도해주세요.');
-      });
+      .writeText(textToCopy)
+      .then(() => alert('복사되었습니다.'))
+      .catch(() => alert('복사에 실패했습니다. 다시 시도해주세요.'));
   };
 
-  // ----- [랜덤번호 추출기 관련 함수] -----
+  // --- 랜덤번호 추출기 관련 함수 ---
   const shuffleArray = <T,>(array: T[]): T[] => {
     const arr = [...array];
     for (let i = arr.length - 1; i > 0; i--) {
@@ -138,21 +112,12 @@ export default function Home() {
   };
 
   const handleExtractNumbers = (): void => {
-    const items = extractionData
-      .split(/[\n,]+/)
-      .map((item) => item.replace(/[^0-9]/g, '').trim())
-      .filter((item) => item);
-
-    // 국제번호(+82) 처리: "82"로 시작하고 길이가 12이면 국내 형식으로 변환
-    const normalizedItems = items.map((item) => {
-      if (item.startsWith('82') && item.length === 12) {
-        return '0' + item.slice(2);
-      }
-      return item;
-    });
-
-    // "010"으로 시작하며 전체 길이가 11인 번호만 필터링
-    const phoneNumbers = normalizedItems.filter(
+    let items = cleanNumbers(extractionData);
+    // 국제번호 처리: "82"로 시작하고 길이가 12인 경우 국내 형식으로 변환
+    items = items.map((item) =>
+      item.startsWith('82') && item.length === 12 ? '0' + item.slice(2) : item
+    );
+    const phoneNumbers = items.filter(
       (item) => item.startsWith('010') && item.length === 11
     );
 
@@ -184,7 +149,7 @@ export default function Home() {
         />
       </h1>
 
-      {/* 서비스 선택 섹션 */}
+      {/* 서비스 선택 */}
       <div className='mb-6'>
         <label className='block text-lg font-semibold text-gray-700 mb-2'>
           서비스 선택
@@ -215,10 +180,9 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 서비스가 번호 세탁기(filter)인 경우 기존 UI 표시 */}
+      {/* 번호 세탁기 UI */}
       {service === 'filter' && (
         <>
-          {/* 비교군 A 입력 섹션 */}
           <div className='mb-6'>
             <label className='block text-lg font-semibold text-gray-700 mb-2'>
               비교군 A (data)
@@ -231,8 +195,6 @@ export default function Home() {
               placeholder='핸드폰 번호를 입력하세요 (예: 010-1234-5678 또는 01012345678)'
             />
           </div>
-
-          {/* 비교군 B 입력 섹션 */}
           <div className='mb-6'>
             <label className='block text-lg font-semibold text-gray-700 mb-2'>
               비교군 B (data)
@@ -245,8 +207,6 @@ export default function Home() {
               placeholder='핸드폰 번호를 입력하세요 (예: 010-8765-4321 또는 01087654321)'
             />
           </div>
-
-          {/* 정렬 및 Calculate 버튼 섹션 */}
           <div className='flex flex-col space-y-4 mb-6'>
             <button
               className='w-full bg-yellow-500 text-white py-3 rounded-md font-bold text-lg hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50'
@@ -261,8 +221,6 @@ export default function Home() {
               계산 (Calculate)
             </button>
           </div>
-
-          {/* 요약 섹션 */}
           <div className='mt-6'>
             <h2 className='text-lg font-semibold text-gray-700 mb-2'>
               Summary:
@@ -271,8 +229,6 @@ export default function Home() {
               {summaryData}
             </p>
           </div>
-
-          {/* 결과 데이터 섹션 */}
           <div className='mt-6'>
             <label className='block text-lg font-semibold text-gray-700 mb-2'>
               {displayOption === 'duplicates'
@@ -301,7 +257,7 @@ export default function Home() {
         </>
       )}
 
-      {/* 서비스가 랜덤번호 추출기(extractor)인 경우 UI 별도 표시 */}
+      {/* 랜덤번호 추출기 UI */}
       {service === 'extractor' && (
         <div className='mt-8'>
           <label className='block text-lg font-semibold text-gray-700 mb-2'>
@@ -314,7 +270,6 @@ export default function Home() {
             rows={4}
             placeholder='번호를 입력하세요 (쉼표 또는 줄바꿈으로 구분)'
           />
-          {/* 입력된 번호 개수 표시 */}
           <p className='text-sm text-gray-500 mt-2'>
             입력된 번호 개수: {getNumberCount(extractionData)}개
           </p>
