@@ -148,7 +148,6 @@ export default function Home() {
           height={32}
         />
       </h1>
-
       {/* 서비스 선택 */}
       <div className='mb-6'>
         <label className='block text-lg font-semibold text-gray-700 mb-2'>
